@@ -1,0 +1,329 @@
+<html>
+<head>
+	<title>Genre Guesser!</title>
+	<link type='text/css' rel='stylesheet' href='stylesheetOG.css'/>
+	<link href='https://fonts.googleapis.com/css?family=Roboto:400,700' rel='stylesheet' type='text/css'>
+
+</head>
+<body>
+	<div id='container'>
+			<div id='title'>
+				<h1>Guess the music genre!</h1>
+			</div>
+   			<div id='game'>
+   				<h3 id="timer"></h3>
+	  			<div id='quiz'>
+
+	  				<div id='videoDiv'></div><!--   				<iframe id='song' width="420" height="315" src="" frameborder="0" allowfullscreen></iframe> -->
+	  			</div>
+	  		</div>
+    		<div class='button' id='next'><a href='#'>Next</a></div>
+    		<div class='button' id='prev'><a href='#'>Prev</a></div>
+    		<div class='button' id='start'> <a href='#'>Start Over</a></div>
+ 
+    </div>
+
+
+
+
+
+		<script type="text/javascript" src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+
+<script type="text/javascript">
+
+var timeRemaining=210;
+
+var counter=setInterval(timer, 1000); 
+
+function timer()
+{
+  timeRemaining=timeRemaining-1;
+  if (timeRemaining <= 0)
+  {
+     clearInterval(counter);
+     alert('Time is up! Move quicker next time!')
+     return;
+  }
+ document.getElementById("timer").innerHTML="seconds remaining: " +timeRemaining;
+
+  //Do code for showing the number of seconds here
+}
+
+  var questions = [{
+
+  	artistGroup: 'foo fighters',
+ 	songTitle: 'learn to fly',
+ 	track:'<iframe id="musicVid" width="420" height="315" src="https://www.youtube.com/embed/1VQ_3sBZEm0" frameborder="5" allowfullscreen></iframe>',
+ 	trackID:'1VQ_3sBZEm0',
+    question: "Name that genre!",
+    choices: ['rock', 'classical', 'country', 'pop', 'house/techno'],
+    correctAnswer: 0
+  }, {
+  	artistGroup: 'Detroit Swindle',
+ 	songTitle: 'BYO',
+    question: "Name that genre!",
+    choices: ['rock', 'classical', 'country', 'pop', 'house/techno'],
+    correctAnswer: 4,
+    trackID: 'b5tWb1MpP1A',
+    track: '<iframe id="musicVid" width="560" height="315" src="https://www.youtube.com/embed/b5tWb1MpP1A" frameborder="5" allowfullscreen></iframe>'
+  }, {
+  	songTitle: 'shimmer',
+ 	artistGroup: 'fuel',
+    question: "Name that genre!",
+    choices: ['rock', 'classical', 'country', 'pop', 'house/techno'],
+    track: '<iframe id="musicVid" width="420" height="315" src="https://www.youtube.com/embed/rZwSqX6J5hs" frameborder="5" allowfullscreen></iframe>',
+    trackID: 'rZwSqX6J5hs',
+    correctAnswer: 0
+  }, {
+    question: "Name that genre!",
+    choices: ['rock', 'classic rock', 'country', 'pop', 'house/techno'],
+    songTitle: 'born in the usa',
+ 	artistGroup: 'the boss springsteen',
+    correctAnswer: 1,
+    trackID: 'EPhWR4d3FJQ',
+    track: '<iframe id="musicVid" width="420" height="315" src="https://www.youtube.com/embed/EPhWR4d3FJQ" frameborder="5" allowfullscreen></iframe>'
+  }];
+
+  var questionCounter = 0; //Tracks question number
+  var selections = []; //Array containing user choices
+  var quiz = $('#quiz');
+ 
+
+  // Display initial question
+  displayNext();
+  
+  // Click handler for the 'next' button
+  $('#next').on('click', function (e) {
+    e.preventDefault();
+    
+    // Suspend click listener during fade animation
+    if(quiz.is(':animated')) {        
+      return false;
+    }
+    choose();
+    
+    // If no user selection, progress is stopped
+    if (isNaN(selections[questionCounter])) {
+      alert('Please make a selection!');
+    } else {
+      questionCounter++;
+      displayNext();
+    }
+  });
+  
+  // Click handler for the 'prev' button
+  
+  $('#prev').on('click', function (e) {
+    e.preventDefault();
+    
+    if(quiz.is(':animated')) {
+      return false;
+    }
+    choose();
+    questionCounter--;
+    displayNext();
+  });
+  
+  
+  // Click handler for the 'Start Over' button
+  $('#start').on('click', function (e) {
+    e.preventDefault();
+     
+    if(quiz.is(':animated')) {
+      return false;
+    }
+    questionCounter = 0;
+    selections = [];
+    displayNext();
+    $('#start').hide();
+  });
+  
+  // Animates buttons on hover
+  $('.button').on('mouseenter', function () {
+    $(this).addClass('active');
+  });
+  $('.button').on('mouseleave', function () {
+    $(this).removeClass('active');
+  });
+  
+// function displayVideoElement(index){
+// 	// $('#videoDiv').html(questions[index].track);
+// 	$('#videoDiv').html('<div class="player"><iframe width="560" height="315" src="https://www.youtube.com/watch?v=' + questions[index].trackID + '" frameborder="0" allowfullscreen></iframe></div>');
+// }
+
+  // Creates and returns the div that contains the questions and 
+  // the answer selections
+  function createQuestionElement(index) {
+    var qElement = $('<div>', {
+      id: 'question'
+    });
+    
+    var header = $('<h2>Song ' + (index + 1) + ':</h2>');
+    qElement.append(header);
+    
+    var question = $('<h3>').append((questions[index].artistGroup)+" - "+(questions[index].songTitle));
+    qElement.append(question);
+
+    var displayVideo = $('#videoDiv').html(questions[index].track);
+
+    // var displayVideo = $('<iframe>').append(questions[index].track);
+    // qElement.append(videoDiv);
+
+   //   var url = "https://www.youtube.com/embed/" + questions[index].track;
+ 	 // $('#videoDiv').append('src' + url);
+    
+    var radioButtons = createRadios(index);
+    qElement.append(radioButtons);
+    
+    return qElement;
+  }
+  
+  // Creates a list of the answer choices as radio inputs
+  function createRadios(index) {
+    var radioList = $('<ul>');
+    var item;
+    var input = '';
+    for (var i = 0; i < questions[index].choices.length; i++) {
+      item = $('<li>');
+      input = '<input type="radio" name="answer" value=' + i + ' />';
+      input += questions[index].choices[i];
+      item.append(input);
+      radioList.append(item);
+    }
+    return radioList;
+  }
+  
+  // Reads the user selection and pushes the value to an array
+  function choose() {
+    selections[questionCounter] = +$('input[name="answer"]:checked').val();
+    // if (selections[questionCounter] === questions.correctAnswer){
+    // 	        alert('nice guess!');
+    //   } else {
+    //   	alert('sorry, wrong guess!');
+    //   }
+  };
+  
+
+
+
+  // Displays next requested element
+  function displayNext() {
+    quiz.fadeOut(function() {
+      $('#question').remove()
+      $('#musicVid').remove()
+      ;
+      
+      if(questionCounter < questions.length){
+        var nextQuestion = createQuestionElement(questionCounter);
+        quiz.append(nextQuestion).fadeIn();
+        if (!(isNaN(selections[questionCounter]))) {
+          $('input[value='+selections[questionCounter]+']').prop('checked', true);
+        }
+        
+        // Controls display of 'prev' button
+        if(questionCounter === 1){
+          $('#prev').show();
+        } else if(questionCounter === 0){
+          
+          $('#prev').hide();
+          $('#next').show();
+        }
+      }else {
+        var scoreElem = displayScore();
+        quiz.append(scoreElem).fadeIn();
+        $('#next').hide();
+        $('#prev').hide();
+        $('#start').show();
+      }
+    });
+  }
+  // debugger;
+  // function alertScore(){
+  // 	for (var i = 0; i < selections.length; i++) 
+  //  	{
+  //     if (selections[i] === questions[i].correctAnswer) 
+  //     {
+  //       numCorrect++;
+  //       alert('nice guess!');
+  //     } else {
+  //     	alert('sorry, wrong guess!');
+  //     }
+  // 	}
+  // }; CANT GET THIS TO WORK ANYWHERE!
+
+  // Computes score and returns a paragraph element to be displayed
+  function displayScore() {
+    var score = $('<p>',{id: 'question'});
+    
+    var numCorrect = 0;
+    for (var i = 0; i < selections.length; i++){ 
+    	// debugger;
+
+      if (selections[i] === questions[i].correctAnswer) 
+      {
+        numCorrect++;
+        alert('nice guess!');
+      } else {
+      	alert('sorry, wrong guess!');
+      }
+    }
+    
+    score.append('You got ' + numCorrect + ' questions out of ' +
+                 questions.length + ' right!!!');
+    return score;
+  };
+
+
+
+  //   function winLossPopUp(result) {
+  // 	if selections[i] =="correctAnswer"
+  // 		alert('Nice guess!');
+  // }else{
+  // 	alert('sorry, wrong answer!');
+  // }
+
+
+//  var genres = ['rock', 'classical', 'country', 'pop', 'house/techno'];
+
+
+
+//  var object1 = {
+//  	arist: 'foo fighters',
+//  	title: 'learn to fly',
+//  	track: '<iframe width="420" height="315" src="https://www.youtube.com/embed/1VQ_3sBZEm0" frameborder="0" allowfullscreen></iframe>',
+//  	genre: 'rock'
+
+//  };
+
+// var  object2 = {
+
+//  	track: '<iframe width="560" height="315" src="https://www.youtube.com/embed/b5tWb1MpP1A" frameborder="0" allowfullscreen></iframe>',
+//  	genre: 'house/techno'
+
+//  };
+
+//  var object3 = {
+
+//  	track: '<iframe width="420" height="315" src="https://www.youtube.com/embed/rZwSqX6J5hs" frameborder="0" allowfullscreen></iframe>',
+//  	genre: 'rock'
+
+//  };
+
+//  var object4 = {
+//  	title: 'born in the usa',
+//  	artist: 'the boss springsteen',
+//  	track: '<iframe width="420" height="315" src="https://www.youtube.com/embed/EPhWR4d3FJQ" frameborder="0" allowfullscreen></iframe>',
+//  	genre: 'classic rock'
+
+//  };
+
+
+
+
+
+ </script>
+
+
+
+</body>
+</html>
